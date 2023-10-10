@@ -39,7 +39,7 @@ public class NhanVienController {
     }
 
     @GetMapping("create")
-    public String create(@ModelAttribute("nv") NhanVienRequest nvEntity) {
+    public String create(@ModelAttribute("nv") NhanVienRequest nvReq) {
 
         return "nhan_vien/create";
     }
@@ -50,18 +50,34 @@ public class NhanVienController {
             @Valid
             @ModelAttribute("nv") NhanVienRequest nvReq,
             BindingResult result) {
-//        if (result.hasErrors()) {
-//            return "nhan_vien/create";
-//        } else {
-//            this.list.add(nvReq);
-//            return "redirect:/nhan-vien/index";
-//        }
+        if (result.hasErrors()) {
+            return "nhan_vien/create";
+        } else {
+            NhanVien nv = new NhanVien();
+            nv.setId(null);
+            nv.setMa(nvReq.getMa());
+            nv.setHo(nvReq.getHo());
+            nv.setTenDem(nvReq.getTenDem());
+            nv.setTen(nvReq.getTen());
+            nv.setGioiTinh(nvReq.getMa());
+            nv.setNgaySinh(nvReq.getNgaySinh());
+            nv.setSdt(nvReq.getSdt());
+            nv.setMatKhau(nvReq.getMa());
+            nv.setDiaChi(nvReq.getDiaChi());
+            nv.setTrangThai(nvReq.getTrangThai());
 
-        return "redirect:/nhan-vien/index";
+            this.nvRepo.save(nv);
+//            this.list.add(nvReq);
+            return "redirect:/nhan-vien/index";
+        }
     }
 
     @GetMapping("edit/{ma}")
-    public String getFormEdit(@PathVariable("ma") String maNV, NhanVienRequest nvReq, Model model) {
+    public String getFormEdit(@PathVariable("ma") String maNV, Model model) {
+        NhanVien nv = this.nvRepo.findByMa(maNV);
+        model.addAttribute("nv", nv);
+
+
 //        for (int i = 0; i < this.list.size(); i++) {
 //            NhanVienRequest nhanVienRequest = this.list.get(i);
 //            if (nhanVienRequest.getMa().equals(maNV)) {
@@ -74,7 +90,21 @@ public class NhanVienController {
 
 
     @PostMapping("update/{ma}")
-    public String updateNV(@PathVariable("ma") String maNV, NhanVienRequest nvEntity) {
+    public String updateNV(@PathVariable("ma") String maNV, NhanVienRequest nvReq) {
+
+        NhanVien oldValue = this.nvRepo.findByMa(maNV);
+        NhanVien nv = new NhanVien();
+        nv.setId(oldValue.getId());
+        nv.setMa(nvReq.getMa());
+        nv.setHo(nvReq.getHo());
+        nv.setTenDem(nvReq.getTenDem());
+        nv.setTen(nvReq.getTen());
+        nv.setGioiTinh(nvReq.getGioiTinh());
+        nv.setNgaySinh(nvReq.getNgaySinh());
+        nv.setDiaChi(nvReq.getDiaChi());
+        nv.setMatKhau(nvReq.getMatKhau());
+        nv.setSdt(nvReq.getSdt());
+        this.nvRepo.save(nv);
 //        for (int i = 0; i < this.list.size(); i++) {
 //            NhanVienRequest nhanVienRequest = this.list.get(i);
 //            if (nhanVienRequest.getMa().equals(maNV)) {
@@ -85,10 +115,14 @@ public class NhanVienController {
         return "redirect:/nhan-vien/index";
     }
 
-    //    Lưu ý {ma} là 1 biến nằm trên đường dẫn (biến k cố định)
+//    Lưu ý {ma} là 1 biến nằm trên đường dẫn (biến k cố định)
     @GetMapping("delete/{ma}")
 //    PathVariable lấy ra tham số trên đường dẫn
     public String delete(@PathVariable("ma") String maNV) {
+        NhanVien nv = this.nvRepo.findByMa(maNV);
+        this.nvRepo.delete(nv);
+
+
 //        for (int i = 0; i < this.list.size(); i++) {
 //            NhanVienRequest nv = this.list.get(i);
 //            if (nv.getMa().equals(maNV)) {
@@ -96,7 +130,6 @@ public class NhanVienController {
 //                break;
 //            }
 //        }
-        System.out.println(maNV);
         return "redirect:/nhan-vien/index";
     }
 }

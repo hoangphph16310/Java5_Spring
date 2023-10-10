@@ -1,27 +1,33 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.SanPham;
+import com.example.demo.repository.SanPhamRepository;
 import com.example.demo.request.SanPhamRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("san-pham")
 public class SanPhamController {
-    private ArrayList<SanPhamRequest> list;
+    private List<SanPham> list;
+
+    @Autowired
+    private SanPhamRepository spRepo;
 
     public SanPhamController() {
         this.list = new ArrayList<>();
-        list.add(new SanPhamRequest("SP01", "Sản Phẩm A"));
-        list.add(new SanPhamRequest("SP02", "Sản Phẩm B"));
     }
 
     @GetMapping("index")
     public String index(Model model) {
+        this.list = this.spRepo.findAll();
         model.addAttribute("data", this.list);
         return "san_pham/view";
     }
@@ -39,20 +45,18 @@ public class SanPhamController {
         if (result.hasErrors()) {
             return "san_pham/create";
         } else {
-            this.list.add(spReq);
+            SanPham sp = new SanPham();
+            sp.setId(null);
+            sp.setMa(spReq.getMa());
+            sp.setTen(spReq.getTen());
             return "redirect:/san-pham/index";
         }
     }
 
     @GetMapping("edit/{ma}")
-    public String edit(@PathVariable("ma") String maSP,Model model){
-        for (int i = 0; i < this.list.size(); i++) {
-            SanPhamRequest sanPhamRequest = this.list.get(i);
-            if(sanPhamRequest.getMa().equals(maSP)){
-                model.addAttribute("sp", sanPhamRequest);
-                break;
-            }
-        }
+    public String edit(@PathVariable("ma") String maSP, Model model) {
+        SanPham sp = this.spRepo.findByMa(maSP);
+        model.addAttribute("sp", sp);
         return "san_pham/edit";
     }
 
@@ -62,30 +66,24 @@ public class SanPhamController {
             @PathVariable("ma") String maSP,
             @ModelAttribute("sp")
                     SanPhamRequest spReq,
-            BindingResult result){
-        if (result.hasErrors()){
+            BindingResult result) {
+        if (result.hasErrors()) {
             return "san_pham/edit";
-        }else {
-            for (int i = 0; i < this.list.size(); i++) {
-                SanPhamRequest sanPhamRequest = this.list.get(i);
-                if(sanPhamRequest.getMa().equals(maSP)){
-                    this.list.set(i,spReq);
-                    break;
-                }
-            }
-        return "redirect:/san-pham/index";
+        } else {
+            SanPham oldValue = this.spRepo.findByMa(maSP);
+            SanPham sp = new SanPham();
+            sp.setId(oldValue.getId());
+            sp.setMa(spReq.getMa());
+            sp.setTen(spReq.getTen());
+            this.spRepo.save(sp);
+            return "redirect:/san-pham/index";
         }
     }
 
     @GetMapping("delete/{ma}")
-    public String delete(@PathVariable("ma") String maSP, SanPhamRequest spReq){
-        for (int i = 0; i < this.list.size(); i++) {
-            SanPhamRequest sp = this.list.get(i);
-            if(sp.getMa().equals(maSP)){
-                this.list.remove(i);
-                break;
-            }
-        }
+    public String delete(@PathVariable("ma") String maSP, SanPhamRequest spReq) {
+        SanPham sp = this.spRepo.findByMa(maSP);
+        this.spRepo.delete(sp);
         return "redirect:/san-pham/index";
     }
 

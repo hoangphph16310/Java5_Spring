@@ -11,6 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MauSacRequest {
+    private Integer id;
     @NotBlank(message = "Không được để trống !")
     private String ma;
     @NotBlank(message = "Không được để trống !")

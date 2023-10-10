@@ -12,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Getter
 @Setter
 public class KhachHangRequest {
+    private Integer id;
     @NotBlank(message = "Không được để trống !")
     private String ma;
     @NotBlank(message = "Không được để trống !")

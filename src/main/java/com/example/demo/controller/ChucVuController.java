@@ -1,7 +1,11 @@
 package com.example.demo.controller;
 
+
+import com.example.demo.entity.ChucVu;
+import com.example.demo.repository.ChucVuRepository;
 import com.example.demo.request.ChucVuRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -9,30 +13,31 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("chuc-vu")// ánh xạ đường dẫn vào controller
 public class ChucVuController {
 
 
-    private ArrayList<ChucVuRequest> list;
+    private List<ChucVu> list;
+
+    @Autowired
+    private ChucVuRepository cvRepo;
 
     public ChucVuController() {
         this.list = new ArrayList<>();
-        list.add(new ChucVuRequest("NV01", "Pham Huy Hoang"));
-        list.add(new ChucVuRequest("NV02", "Tran Van Duyen"));
-        list.add(new ChucVuRequest("NV03", "Vu Van Nguyen"));
-        list.add(new ChucVuRequest("NV04", "Trần Thị Vân Anh"));
     }
 
     @GetMapping("index")
     public String index(Model model) {
+        this.list = this.cvRepo.findAll();
         model.addAttribute("data", this.list);
         return ("chuc_vu/view");
     }
 
     @GetMapping("create")
-    public String getFormChucVu(@ModelAttribute("cv") ChucVuRequest chucVuRequestReq) {
+    public String create(@ModelAttribute("cv") ChucVuRequest cvReq) {
 
         return "chuc_vu/create";
     }
@@ -47,21 +52,22 @@ public class ChucVuController {
             redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại !");
             return "chuc_vu/create";
         } else {
-            this.list.add(cvReq);
+            ChucVu cv = new ChucVu();
+            cv.setId(null);
+            cv.setMa(cvReq.getMa());
+            cv.setTen(cvReq.getTen());
+
+            this.cvRepo.save(cv);
+//            this.list.add(cvReq);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công !");
         }
-            return "redirect:/chuc-vu/index";
+        return "redirect:/chuc-vu/index";
     }
 
     @GetMapping("edit/{ma}")
     public String getFormEditChucVu(@PathVariable("ma") String maCV, Model model) {
-        for (int i = 0; i < this.list.size(); i++) {
-            ChucVuRequest chucVuRequest = this.list.get(i);
-            if (chucVuRequest.getMa().equals(maCV)) {
-                model.addAttribute("cv", chucVuRequest);
-                break;
-            }
-        }
+       ChucVu cv = this.cvRepo.findByMa(maCV);
+       model.addAttribute("cv",cv);
         return "chuc_vu/edit";
     }
 
@@ -71,29 +77,23 @@ public class ChucVuController {
             @PathVariable("ma") String maCV,
             @ModelAttribute("cv") ChucVuRequest cvReq,
             BindingResult result) {
-        if (result.hasErrors()){
+        if (result.hasErrors()) {
             return "chuc_vu/edit";
-        }else {
-            for (int i = 0; i < this.list.size(); i++) {
-                ChucVuRequest chucVuRequest = this.list.get(i);
-                if (chucVuRequest.getMa().equals(maCV)) {
-                    this.list.set(i, cvReq);
-                    break;
-                }
-            }
+        } else {
+            ChucVu oldValue = this.cvRepo.findByMa(maCV);
+            ChucVu cv = new ChucVu();
+            cv.setId(oldValue.getId());
+            cv.setMa(cvReq.getMa());
+            cv.setTen(cvReq.getTen());
+            this.cvRepo.save(cv);
         }
         return "redirect:/chuc-vu/index";
     }
 
     @GetMapping("delete/{ma}")
     public String delete(@PathVariable("ma") String maCV) {
-        for (int i = 0; i < this.list.size(); i++) {
-            ChucVuRequest chucVuRequest = this.list.get(i);
-            if (chucVuRequest.getMa().equals(maCV)) {
-                this.list.remove(i);
-                break;
-            }
-        }
+        ChucVu cv = this.cvRepo.findByMa(maCV);
+        this.cvRepo.delete(cv);
         return "redirect:/chuc-vu/index";
     }
 }

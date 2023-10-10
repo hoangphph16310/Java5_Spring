@@ -1,82 +1,81 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.MauSac;
+import com.example.demo.entity.NhaSX;
+import com.example.demo.repository.NhaSXRepository;
 import com.example.demo.request.NhaSXRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("nhasx")
 public class NhaSXController {
-    private ArrayList<NhaSXRequest> list;
+    private List<NhaSX> list;
 
+    @Autowired
+    private NhaSXRepository nsxRepo;
 
     public NhaSXController() {
         this.list = new ArrayList<>();
-        list.add(new NhaSXRequest("SX01", "BanDai"));
-        list.add(new NhaSXRequest("SX02", "SiWon"));
+
     }
 
     @GetMapping("index")
     public String index(Model model) {
+        this.list = this.nsxRepo.findAll();
         model.addAttribute("data", this.list);
         return "nhasx/view";
     }
 
     @GetMapping("create")
-    public String getForm(@ModelAttribute("nsx") NhaSXRequest nsxEntity) {
+    public String getForm(@ModelAttribute("nsx") NhaSXRequest nsxReq) {
 
         return "nhasx/create";
     }
 
     @PostMapping("store")
-    public String nhasx(@Valid @ModelAttribute("nsx") NhaSXRequest nsxEntity, BindingResult result) {
+    public String nhasx(@Valid @ModelAttribute("nsx") NhaSXRequest nsxReq, BindingResult result) {
         if (result.hasErrors()) {
             return "nhasx/create";
         } else {
-            this.list.add(nsxEntity);
+            NhaSX nsx = new NhaSX();
+            nsx.setId(null);
+            nsx.setMa(nsxReq.getMa());
+            nsx.setTen(nsxReq.getTen());
+            this.nsxRepo.save(nsx);
             return "redirect:/nhasx/index";
         }
     }
 
     @GetMapping("edit/{ma}")
-    public String getFormEdit(@PathVariable("ma") String maNSX, NhaSXRequest nsxReq, Model model) {
-        for (int i = 0; i < this.list.size(); i++) {
-            NhaSXRequest nhaSXRequest = this.list.get(i);
-            if (nhaSXRequest.getMa().equals(maNSX)) {
-                model.addAttribute("nsx", nhaSXRequest);
-                break;
-            }
-        }
+    public String getFormEdit(@PathVariable("ma") String maNSX, Model model) {
+        NhaSX nsx = this.nsxRepo.findByMa(maNSX);
+        model.addAttribute("nsx",nsx);
         return "nhasx/edit";
     }
 
     @PostMapping("update/{ma}")
-    public String updateNhaSX(@Valid @PathVariable("ma") String msNSX, NhaSXRequest nsxReq, BindingResult result) {
-        for (int i = 0; i < this.list.size(); i++) {
-            NhaSXRequest sx = this.list.get(i);
-            if (sx.getMa().equals(msNSX)) {
-                this.list.set(i, nsxReq);
-                break;
-            }
-        }
+    public String updateNhaSX(@Valid @PathVariable("ma") String maNSX, NhaSXRequest nsxReq, BindingResult result) {
+        NhaSX oldValue = this.nsxRepo.findByMa(maNSX);
+        NhaSX nsx = new NhaSX();
+        nsx.setId(oldValue.getId());
+        nsx.setMa(nsxReq.getMa());
+        nsx.setTen(nsxReq.getTen());
+        this.nsxRepo.save(nsx);
         return "redirect:/nhasx/index";
     }
 
     @GetMapping("delete/{ma}")
     public String delete(@PathVariable("ma") String maNSX) {
-        System.out.println("NhasxcControllerDelete");
-        for (int i = 0; i < this.list.size(); i++) {
-            NhaSXRequest sx = this.list.get(i);
-            if (sx.getMa().equals(maNSX)) {
-                this.list.remove(i);
-                break;
-            }
-        }
+        NhaSX nsx = this.nsxRepo.findByMa(maNSX);
+        this.nsxRepo.delete(nsx);
         return "redirect:/nhasx/index";
     }
 }

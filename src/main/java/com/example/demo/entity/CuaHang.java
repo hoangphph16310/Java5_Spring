@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,36 +10,24 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "NhanVien")
+@Table(name = "CuaHang")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NhanVien {
+public class CuaHang {
     @Id
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @Column(name = "Ma")
     private String ma;
-    @Column(name = "Ho")
-    private String ho;
-    @Column(name = "TenDem")
-    private String tenDem;
     @Column(name = "Ten")
     private String ten;
-    @Column(name = "GioiTinh")
-    private String gioiTinh;
-    @Column(name = "NgaySinh")
-    private String ngaySinh;
     @Column(name = "DiaChi")
     private String diaChi;
-    @Column(name = "Sdt")
-    private String sdt;
-    @Column(name = "MatKhau")
-    private String matKhau;
-    @Column(name = "TrangThai")
-    private Integer trangThai;
+    @Column(name = "ThanhPho")
+    private String thanhPho;
+    @Column(name = "QuocGia")
+    private String quocGia;
 }
-
-

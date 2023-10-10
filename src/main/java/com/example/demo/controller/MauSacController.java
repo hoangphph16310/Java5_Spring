@@ -1,29 +1,35 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.MauSac;
+import com.example.demo.repository.MauSacRepository;
 import com.example.demo.request.MauSacRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("mau-sac")
 public class MauSacController {
 
-    private ArrayList<MauSacRequest> list;
+    private List<MauSac> list;
+
+    @Autowired
+    private MauSacRepository msRepo;
 
     public MauSacController() {
         this.list = new ArrayList<>();
-        list.add(new MauSacRequest("MD01", "Màu Xanh"));
-        list.add(new MauSacRequest("MD02", "Màu Vàng"));
     }
 
 
     @GetMapping("index")
     public String index(Model model) {
+        this.list = this.msRepo.findAll();
         model.addAttribute("data", this.list);
         return "mau_sac/view";
     }
@@ -38,48 +44,41 @@ public class MauSacController {
             @Valid
             @ModelAttribute("ms") MauSacRequest msReq,
             BindingResult result
-            ) {
+    ) {
         if (result.hasErrors()) {
             return "mau_sac/create";
         }
-        this.list.add(msReq);
+        MauSac ms = new MauSac();
+        ms.setId(null);
+        ms.setMa(msReq.getMa());
+        ms.setTen(msReq.getTen());
+        this.msRepo.save(ms);
         return "redirect:/mau-sac/index";
     }
 
     @GetMapping("edit/{ma}")
-    public String edit(@PathVariable("ma") String maMS,Model model){
-        for (int i = 0; i < this.list.size(); i++) {
-            MauSacRequest mauSacRequest = this.list.get(i);
-            if (mauSacRequest.getMa().equals(maMS)){
-                model.addAttribute("ms", mauSacRequest);
-                break;
-            }
-        }
+    public String edit(@PathVariable("ma") String maMS, Model model) {
+        MauSac ms = this.msRepo.findByMa(maMS);
+        model.addAttribute("ms",ms);
         return ("mau_sac/edit");
     }
 
     @PostMapping("update/{ma}")
-    public String update(@PathVariable("ma") String maMS , MauSacRequest msReq){
-        for (int i = 0; i < this.list.size(); i++) {
-            MauSacRequest mauSacRequest = this.list.get(i);
-            if (mauSacRequest.getMa().equals(maMS)){
-               this.list.set(i,msReq);
-                break;
-            }
-        }
+    public String update(@PathVariable("ma") String maMS, MauSacRequest msReq) {
+        MauSac oldValue = this.msRepo.findByMa(maMS);
+        MauSac ms = new MauSac();
+        ms.setId(oldValue.getId());
+        ms.setMa(msReq.getMa());
+        ms.setTen(msReq.getTen());
+        this.msRepo.save(ms);
         return "redirect:/mau-sac/index";
     }
 
 
     @GetMapping("delete/{ma}")
-    public String delete(@PathVariable("ma") String maMS){
-        for (int i = 0; i < this.list.size(); i++) {
-            MauSacRequest ms = this.list.get(i);
-            if (ms.getMa().equals(maMS)){
-                this.list.remove(i);
-                break;
-            }
-        }
+    public String delete(@PathVariable("ma") String maMS) {
+        MauSac ms = this.msRepo.findByMa(maMS);
+        this.msRepo.delete(ms);
         return "redirect:/mau-sac/index";
     }
 }

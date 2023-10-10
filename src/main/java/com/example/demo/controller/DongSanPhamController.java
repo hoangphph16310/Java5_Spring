@@ -1,23 +1,28 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.DongSP;
+import com.example.demo.repository.DongSPRepository;
 import com.example.demo.request.DongSanPhamRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("dongsp")
 public class DongSanPhamController {
-    private ArrayList<DongSanPhamRequest> list;
+    private List<DongSP> list;
+
+    @Autowired
+    private DongSPRepository dspRepo;
 
     public DongSanPhamController() {
         this.list = new ArrayList<>();
-        list.add(new DongSanPhamRequest("DSP01", "Dòng Sản Phẩm A"));
-        list.add(new DongSanPhamRequest("DSP02", "Dòng Sản Phẩm B"));
     }
 
     @GetMapping("index")
@@ -40,20 +45,19 @@ public class DongSanPhamController {
         if (result.hasErrors()) {
             return "dong_sp/create";
         } else {
-            this.list.add(dspReq);
+            DongSP dsp = new DongSP();
+            dsp.setId(null);
+            dsp.setMa(dspReq.getMa());
+            dsp.setTen(dspReq.getTen());
+            this.dspRepo.save(dsp);
             return "redirect:/dongsp/index";
         }
     }
 
     @GetMapping("edit/{ma}")
     public String edit(@PathVariable("ma") String maDSP, Model model){
-        for (int i = 0; i < this.list.size(); i++) {
-            DongSanPhamRequest dongSanPhamRequest = this.list.get(i);
-            if(dongSanPhamRequest.getMa().equals(maDSP)){
-                model.addAttribute("dsp", dongSanPhamRequest);
-                break;
-            }
-        }
+        DongSP dsp = this.dspRepo.findByMa(maDSP);
+        model.addAttribute("dsp", dsp);
         return "dong_sp/edit";
     }
 
@@ -66,26 +70,20 @@ public class DongSanPhamController {
         if (result.hasErrors()){
             return "dong_sp/edit";
         }else {
-            for (int i = 0; i < this.list.size(); i++) {
-                DongSanPhamRequest dongSanPhamRequest = this.list.get(i);
-                if(dongSanPhamRequest.getMa().equals(maDSP)){
-                    this.list.set(i,dspReq);
-                    break;
-                }
-            }
+            DongSP oldValue = this.dspRepo.findByMa(maDSP);
+            DongSP dsp = new DongSP();
+            dsp.setId(oldValue.getId());
+            dsp.setMa(dspReq.getMa());
+            dsp.setTen(dspReq.getTen());
+            this.dspRepo.save(dsp);
             return "redirect:/dongsp/index";
         }
     }
 
     @GetMapping("delete/{ma}")
     public String delete(@PathVariable("ma") String maDSP, DongSanPhamRequest dspReq){
-        for (int i = 0; i < this.list.size(); i++) {
-            DongSanPhamRequest dsp = this.list.get(i);
-            if(dsp.getMa().equals(maDSP)){
-                this.list.remove(i);
-                break;
-            }
-        }
+        DongSP dsp = this.dspRepo.findByMa(maDSP);
+        this.dspRepo.delete(dsp);
         return "redirect:/dongsp/index";
     }
 
